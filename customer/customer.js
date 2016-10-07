@@ -1,33 +1,34 @@
 var express = require('express');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 var http = require('http');
 var uuid = require('node-uuid');
 var fs = require('fs');
 
 var api = express();
-var CUSTOMER_PREFIX = '[CUSTOMER_SERVICE]'
+var CUSTOMER_PREFIX = '[CUSTOMER_SERVICE]';
 
 api.use(bodyParser.json());
 
-api.get('/', function (request, response) {
+api.get('/', function(request, response) {
     console.log("%s Redirecting on [/index.html]...", CUSTOMER_PREFIX);
 
     response.redirect('/index.html');
     response.end();
 });
 
-api.get('/index.html', function (request, response) {
+api.get('/index.html', function(request, response) {
     console.log("%s Handling request: Get index page", CUSTOMER_PREFIX);
 
     response.send('<h1>Welcome in our Customer Service!!!</h1>');
     response.end();
 });
 
-api.get('/customers', function (request, response) {
+api.get('/customers', function(request, response) {
     console.log("%s Handling request: Get all customers", CUSTOMER_PREFIX);
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function (err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -38,12 +39,13 @@ api.get('/customers', function (request, response) {
     });
 });
 
-api.get('/customers/:customerId', function (request, response) {
-    var customerId = request.params.customerId
+api.get('/customers/:customerId', function(request, response) {
+    var customerId = request.params.customerId;
     console.log("%s Handling request: Get customer by id [%s]", CUSTOMER_PREFIX, customerId);
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function (err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -51,7 +53,7 @@ api.get('/customers/:customerId', function (request, response) {
 
         data = JSON.parse(data);
 
-        for (var i=0; i<data.length; i++) {
+        for (var i = 0; i < data.length; i++) {
             if (data[i].id == customerId) {
                 response.set('Content-Type', 'application/json');
                 response.end(JSON.stringify(data[i]));
@@ -65,12 +67,13 @@ api.get('/customers/:customerId', function (request, response) {
     });
 });
 
-api.post('/customer', function (request, response) {
+api.post('/customer', function(request, response) {
     var newCustomer = request.body;
     console.log("%s Handling request: Create a new customer", CUSTOMER_PREFIX);
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function (err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -80,8 +83,9 @@ api.post('/customer', function (request, response) {
         data = JSON.parse(data);
         data[data.length] = newCustomer;
 
-        fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(err) {
-            if (err) {
+        fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(e) {
+            if (e) {
+                console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
                 response.statusCode = 500;
                 response.end();
                 return;
@@ -95,9 +99,9 @@ api.post('/customer', function (request, response) {
     });
 });
 
-api.put('/customers/:customerId/hotels/:hotelId', function (request, response) {
-    var customerId = request.params.customerId
-    var hotelId = request.params.hotelId
+api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
+    var customerId = request.params.customerId;
+    var hotelId = request.params.hotelId;
     console.log("%s Handling request: Assign customer with id [%s] to the hotel [%s]", CUSTOMER_PREFIX, customerId, hotelId);
 
     var options = {
@@ -107,8 +111,9 @@ api.put('/customers/:customerId/hotels/:hotelId', function (request, response) {
         method: 'GET'
     };
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function (err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -128,15 +133,15 @@ api.put('/customers/:customerId/hotels/:hotelId', function (request, response) {
             response.statusCode = 404;
             response.end();
             return;
-        }
-        else {
+        } else {
             var req = http.request(options, function(res) {
                 res.on('data', function() { /* do nothing */ });
 
                 if (res.statusCode == 200) {
-                    data[idx].hotel = hotelId;
-                    fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(err) {
-                        if (err) {
+                    data[idx].hotelId = hotelId;
+                    fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(e) {
+                        if (e) {
+                            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
                             response.statusCode = 500;
                             response.end();
                             return;
@@ -164,7 +169,7 @@ api.put('/customers/:customerId/hotels/:hotelId', function (request, response) {
     });
 });
 
-var server = api.listen(8080, function () {
+var server = api.listen(8080, function() {
     var host = server.address().address;
     var port = server.address().port;
 
