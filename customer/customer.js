@@ -26,8 +26,9 @@ api.get('/index.html', function(request, response) {
 api.get('/customers', function(request, response) {
     console.log("%s Handling request: Get all customers", CUSTOMER_PREFIX);
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function(err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -42,8 +43,9 @@ api.get('/customers/:customerId', function(request, response) {
     var customerId = request.params.customerId;
     console.log("%s Handling request: Get customer by id [%s]", CUSTOMER_PREFIX, customerId);
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function(err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -69,8 +71,9 @@ api.post('/customer', function(request, response) {
     var newCustomer = request.body;
     console.log("%s Handling request: Create a new customer", CUSTOMER_PREFIX);
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function(err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -80,8 +83,9 @@ api.post('/customer', function(request, response) {
         data = JSON.parse(data);
         data[data.length] = newCustomer;
 
-        fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(err) {
-            if (err) {
+        fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(e) {
+            if (e) {
+                console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
                 response.statusCode = 500;
                 response.end();
                 return;
@@ -107,8 +111,9 @@ api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
         method: 'GET'
     };
 
-    fs.readFile(__dirname + '/customers.json', 'utf8', function(err, data) {
-        if (err) {
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
             response.statusCode = 500;
             response.end();
             return;
@@ -133,9 +138,10 @@ api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
                 res.on('data', function() { /* do nothing */ });
 
                 if (res.statusCode == 200) {
-                    data[idx].hotel = hotelId;
-                    fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(err) {
-                        if (err) {
+                    data[idx].hotelId = hotelId;
+                    fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(e) {
+                        if (e) {
+                            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
                             response.statusCode = 500;
                             response.end();
                             return;
