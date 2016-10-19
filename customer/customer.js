@@ -67,6 +67,42 @@ api.get('/customers/:customerId', function(request, response) {
     });
 });
 
+api.delete('/customers/:customerId', function(request, response) {
+    var customerId = request.params.customerId;
+    console.log("%s Handling request: Delete customer by id [%s]", CUSTOMER_PREFIX, customerId);
+
+    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
+        if (e) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
+            response.statusCode = 500;
+            response.end();
+            return;
+        }
+
+        data = JSON.parse(data);
+        updatedData = [];
+
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].id != customerId) {
+                updatedData.push(data[i]);
+            }
+        }
+
+        fs.writeFile(__dirname + '/customers.json', JSON.stringify(updatedData, null, 2), function(e) {
+            if (e) {
+                console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
+                response.statusCode = 500;
+                response.end();
+                return;
+            }
+
+            console.log("%s Customer with id [%s] is deleted", CUSTOMER_PREFIX, customerId);
+        });
+
+        response.end();
+    });
+});
+
 api.post('/customer', function(request, response) {
     var newCustomer = request.body;
     console.log("%s Handling request: Create a new customer", CUSTOMER_PREFIX);
