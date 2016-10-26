@@ -40,7 +40,9 @@ api.get('/hotels/:hotelId', function(request, response) {
 
     var collection = request.db.get(HOTELS_COLLECTION);
 
-    collection.findOne({_id: hotelId}, function(err, result) {
+    collection.findOne({
+        _id: hotelId
+    }, function(err, result) {
         if (err) {
             console.log("%s Internal Server Error: %s", HOTEL_PREFIX, err.message);
             response.statusCode = 500;
@@ -48,7 +50,7 @@ api.get('/hotels/:hotelId', function(request, response) {
             return;
         }
 
-        if (result != null) {
+        if (result !== null) {
             response.set('Content-Type', 'application/json');
             response.end(JSON.stringify(result));
         } else {

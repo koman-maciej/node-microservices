@@ -55,7 +55,9 @@ api.get('/customers/:customerId', function(request, response) {
 
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
-    collection.findOne({_id: customerId}, function(err, result) {
+    collection.findOne({
+        _id: customerId
+    }, function(err, result) {
         if (err) {
             console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, err.message);
             response.statusCode = 500;
@@ -63,7 +65,7 @@ api.get('/customers/:customerId', function(request, response) {
             return;
         }
 
-        if (result != null) {
+        if (result !== null) {
             response.set('Content-Type', 'application/json');
             response.end(JSON.stringify(result));
         } else {
@@ -81,7 +83,9 @@ api.delete('/customers/:customerId', function(request, response) {
 
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
-    collection.findOneAndDelete({_id: customerId}, function(err, result) {
+    collection.findOneAndDelete({
+        _id: customerId
+    }, function(err, result) {
         if (err) {
             console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, err.message);
             response.statusCode = 500;
@@ -114,75 +118,78 @@ api.post('/customers', function(request, response) {
     });
 });
 
-//api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
-//    var customerId = request.params.customerId;
-//    var hotelId = request.params.hotelId;
-//    console.log("%s Handling request: Assign customer with id [%s] to the hotel [%s]", CUSTOMER_PREFIX, customerId, hotelId);
-//
-//    var options = {
-//        host: 'localhost',
-//        port: 8081,
-//        path: '/hotels/' + hotelId,
-//        method: 'GET'
-//    };
-//
-//    fs.readFile(__dirname + '/customers.json', 'utf8', function(e, data) {
-//        if (e) {
-//            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
-//            response.statusCode = 500;
-//            response.end();
-//            return;
-//        }
-//
-//        data = JSON.parse(data);
-//        var idx = -1;
-//        for (var i = 0; i < data.length; i++) {
-//            if (data[i].id == customerId) {
-//                idx = i;
-//                break;
-//            }
-//        }
-//
-//        if (idx < 0) {
-//            console.log("%s Customer with id [%s] not found", CUSTOMER_PREFIX, customerId);
-//            response.statusCode = 404;
-//            response.end();
-//            return;
-//        } else {
-//            var req = http.request(options, function(res) {
-//                res.on('data', function() { /* do nothing */ });
-//
-//                if (res.statusCode || 200) {
-//                    data[idx].hotelId = hotelId;
-//                    fs.writeFile(__dirname + '/customers.json', JSON.stringify(data, null, 2), function(e) {
-//                        if (e) {
-//                            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, e.message);
-//                            response.statusCode = 500;
-//                            response.end();
-//                            return;
-//                        }
-//
-//                        console.log("%s Customer with id [%s] is updated", CUSTOMER_PREFIX, customerId);
-//                        response.set('Content-Type', 'application/json');
-//                        response.end(JSON.stringify(data[idx]));
-//                    });
-//                } else {
-//                    console.log("%s Hotel with id [%s] not found", CUSTOMER_PREFIX, hotelId);
-//                    response.statusCode = 404;
-//                    response.end();
-//                }
-//            });
-//
-//            req.on('error', function(e) {
-//                console.log("%s Problem with request: %s", CUSTOMER_PREFIX, e.message);
-//                response.statusCode = 500;
-//                response.end();
-//            });
-//
-//            req.end();
-//        }
-//    });
-//});
+api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
+    //FIXME: http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
+    var customerId = request.params.customerId;
+    var hotelId = request.params.hotelId;
+    console.log("%s Handling request: Assign customer with id [%s] to the hotel [%s]", CUSTOMER_PREFIX, customerId, hotelId);
+
+    var options = {
+        host: 'localhost',
+        port: 8081,
+        path: '/hotels/' + hotelId,
+        method: 'GET'
+    };
+
+    var collection = request.db.get(CUSTOMERS_COLLECTION);
+
+    collection.findOne({
+        _id: customerId
+    }, function(err, result) {
+        if (err) {
+            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, err.message);
+            response.statusCode = 500;
+            response.end();
+            return;
+        }
+
+        if (result !== null) {
+
+            var req = http.request(options, function(res) {
+                res.on('data', function() { /* do nothing */ });
+
+                if (res.statusCode == 200) {
+
+                    collection.findOneAndUpdate({
+                        _id: customerId
+                    }, {
+                        $set: {
+                            'hotelId': hotelId
+                        }
+                    }, function(err, result) {
+                        if (err) {
+                            console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, err.message);
+                            response.statusCode = 500;
+                            response.end();
+                            return;
+                        }
+
+                        console.log("%s Customer with id [%s] is updated", CUSTOMER_PREFIX, customerId);
+                        response.set('Content-Type', 'application/json');
+                        response.end(JSON.stringify(result));
+                    });
+                } else {
+                    console.log("%s Hotel with id [%s] not found", CUSTOMER_PREFIX, hotelId);
+                    response.statusCode = 404;
+                    response.end();
+                }
+            });
+
+            req.on('error', function(err) {
+                console.log("%s Problem with request: %s", CUSTOMER_PREFIX, err.message);
+                response.statusCode = 500;
+                response.end();
+            });
+
+            req.end();
+
+        } else {
+            console.log("%s Customer with id [%s] not found", CUSTOMER_PREFIX, customerId);
+            response.statusCode = 404;
+            response.end();
+        }
+    });
+});
 
 var server = api.listen(8080, function() {
     var host = server.address().address;
