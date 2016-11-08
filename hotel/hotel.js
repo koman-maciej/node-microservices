@@ -43,6 +43,14 @@ api.get('/hotels/:hotelId', function(request, response) {
     var hotelId = request.params.hotelId;
     console.log("%s Handling request: Get hotel by id [%s]", HOTEL_PREFIX, hotelId);
 
+    // https://github.com/Automattic/monk/issues/24
+    if (request.db._state === 'closed') {
+        console.log("%s Internal Server Error: %s", HOTEL_PREFIX, 'Cannot connect with database...');
+        response.statusCode = 500;
+        response.end();
+        return;
+    }
+
     // http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
     try {
         new mongo.ObjectID.createFromHexString(hotelId);
@@ -53,13 +61,6 @@ api.get('/hotels/:hotelId', function(request, response) {
         return;
     }
 
-    // https://github.com/Automattic/monk/issues/24
-    if (request.db._state === 'closed') {
-        console.log("%s Internal Server Error: %s", HOTEL_PREFIX, 'Cannot connect with database...');
-        response.statusCode = 500;
-        response.end();
-        return;
-    }
     var collection = request.db.get(HOTELS_COLLECTION);
 
     collection.findOne({
