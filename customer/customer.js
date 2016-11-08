@@ -55,9 +55,18 @@ api.get('/customers', function(request, response) {
 });
 
 api.get('/customers/:customerId', function(request, response) {
-    //FIXME: http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
     var customerId = request.params.customerId;
     console.log("%s Handling request: Get customer by id [%s]", CUSTOMER_PREFIX, customerId);
+
+    // http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
+    try {
+        new mongo.ObjectID.createFromHexString(customerId);
+    } catch (e) {
+        console.log("%s Customer with id [%s] not found", CUSTOMER_PREFIX, customerId);
+        response.statusCode = 404;
+        response.end();
+        return;
+    }
 
     // https://github.com/Automattic/monk/issues/24
     if (request.db._state === 'closed') {
@@ -90,9 +99,18 @@ api.get('/customers/:customerId', function(request, response) {
 });
 
 api.delete('/customers/:customerId', function(request, response) {
-    //FIXME: http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
     var customerId = request.params.customerId;
     console.log("%s Handling request: Delete customer by id [%s]", CUSTOMER_PREFIX, customerId);
+
+    // http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
+    try {
+        new mongo.ObjectID.createFromHexString(customerId);
+    } catch (e) {
+        console.log("%s Customer with id [%s] not found", CUSTOMER_PREFIX, customerId);
+        response.statusCode = 404;
+        response.end();
+        return;
+    }
 
     // https://github.com/Automattic/monk/issues/24
     if (request.db._state === 'closed') {
@@ -146,10 +164,19 @@ api.post('/customers', function(request, response) {
 });
 
 api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
-    //FIXME: http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
     var customerId = request.params.customerId;
     var hotelId = request.params.hotelId;
     console.log("%s Handling request: Assign customer with id [%s] to the hotel [%s]", CUSTOMER_PREFIX, customerId, hotelId);
+
+    // http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
+    try {
+        new mongo.ObjectID.createFromHexString(customerId);
+    } catch (e) {
+        console.log("%s Customer with id [%s] not found", CUSTOMER_PREFIX, customerId);
+        response.statusCode = 404;
+        response.end();
+        return;
+    }
 
     var options = {
         host: 'localhost',

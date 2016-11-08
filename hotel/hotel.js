@@ -40,9 +40,18 @@ api.get('/hotels', function(request, response) {
 });
 
 api.get('/hotels/:hotelId', function(request, response) {
-    //FIXME: http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
     var hotelId = request.params.hotelId;
     console.log("%s Handling request: Get hotel by id [%s]", HOTEL_PREFIX, hotelId);
+
+    // http://stackoverflow.com/questions/26453507/argument-passed-in-must-be-a-single-string-of-12-bytes
+    try {
+        new mongo.ObjectID.createFromHexString(hotelId);
+    } catch (e) {
+        console.log("%s Hotel with id [%s] not found", HOTEL_PREFIX, hotelId);
+        response.statusCode = 404;
+        response.end();
+        return;
+    }
 
     // https://github.com/Automattic/monk/issues/24
     if (request.db._state === 'closed') {
