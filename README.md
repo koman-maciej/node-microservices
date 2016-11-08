@@ -8,10 +8,12 @@ It's a simple example of using scripting language for developing microservices t
 - [git](http://git-scm.com/downloads) - for version control
 - [nodejs](https://nodejs.org/en/download/) - runtime for JavaScript
 - [npm](https://docs.npmjs.com/cli/install) - dependency management
+- [mongodb](https://docs.mongodb.com/v3.2/tutorial/install-mongodb-on-ubuntu/) - database
 
 ## Get started
 
 - Choose your favourite text editor for develop
+- Run MongoDB database
 - Install dependencies via `npm install`
 - Run each microservice by typing e.g.: `nodejs customer/customer`
 

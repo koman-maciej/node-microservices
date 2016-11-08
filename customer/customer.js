@@ -4,7 +4,6 @@ var http = require('http');
 var mongo = require('mongodb');
 var monk = require('monk');
 
-//FIXME: set timeout on mongodb connection (when mongo instance is down)
 var db = monk('localhost:27017/customer');
 var api = express();
 var CUSTOMER_PREFIX = '[CUSTOMER_SERVICE]';
@@ -33,6 +32,13 @@ api.get('/index.html', function(request, response) {
 api.get('/customers', function(request, response) {
     console.log("%s Handling request: Get all customers", CUSTOMER_PREFIX);
 
+    // https://github.com/Automattic/monk/issues/24
+    if (request.db._state === 'closed') {
+        console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, 'Cannot connect with database...');
+        response.statusCode = 500;
+        response.end();
+        return;
+    }
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
     collection.find({}, function(err, result) {
@@ -53,6 +59,13 @@ api.get('/customers/:customerId', function(request, response) {
     var customerId = request.params.customerId;
     console.log("%s Handling request: Get customer by id [%s]", CUSTOMER_PREFIX, customerId);
 
+    // https://github.com/Automattic/monk/issues/24
+    if (request.db._state === 'closed') {
+        console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, 'Cannot connect with database...');
+        response.statusCode = 500;
+        response.end();
+        return;
+    }
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
     collection.findOne({
@@ -81,6 +94,13 @@ api.delete('/customers/:customerId', function(request, response) {
     var customerId = request.params.customerId;
     console.log("%s Handling request: Delete customer by id [%s]", CUSTOMER_PREFIX, customerId);
 
+    // https://github.com/Automattic/monk/issues/24
+    if (request.db._state === 'closed') {
+        console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, 'Cannot connect with database...');
+        response.statusCode = 500;
+        response.end();
+        return;
+    }
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
     collection.findOneAndDelete({
@@ -100,8 +120,15 @@ api.delete('/customers/:customerId', function(request, response) {
 
 api.post('/customers', function(request, response) {
     console.log("%s Handling request: Create a new customer", CUSTOMER_PREFIX);
-
     var newCustomer = request.body;
+
+    // https://github.com/Automattic/monk/issues/24
+    if (request.db._state === 'closed') {
+        console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, 'Cannot connect with database...');
+        response.statusCode = 500;
+        response.end();
+        return;
+    }
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
     collection.insert(newCustomer, function(err, result) {
@@ -131,6 +158,13 @@ api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
         method: 'GET'
     };
 
+    // https://github.com/Automattic/monk/issues/24
+    if (request.db._state === 'closed') {
+        console.log("%s Internal Server Error: %s", CUSTOMER_PREFIX, 'Cannot connect with database...');
+        response.statusCode = 500;
+        response.end();
+        return;
+    }
     var collection = request.db.get(CUSTOMERS_COLLECTION);
 
     collection.findOne({
