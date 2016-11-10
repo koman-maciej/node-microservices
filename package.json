@@ -1,8 +1,10 @@
 {
   "dependencies": {
-    "express": "latest",
     "body-parser": "latest",
+    "cors": "latest",
+    "express": "latest",
     "mongodb": "latest",
-    "monk": "latest"
+    "monk": "latest",
+    "swagger-jsdoc": "latest"
   }
 }
