@@ -150,7 +150,7 @@ api.post('/customers', function(request, response) {
     });
 });
 
-api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
+api.patch('/customers/:customerId/hotels/:hotelId', function(request, response) {
     var customerId = request.params.customerId;
     var hotelId = request.params.hotelId;
     console.log("%s Handling request: Assign customer with id [%s] to the hotel [%s]", CUSTOMER_PREFIX, customerId, hotelId);
