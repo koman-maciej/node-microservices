@@ -12,7 +12,7 @@ var api = express();
 var CUSTOMER_PREFIX = '[CUSTOMER_SERVICE]';
 var CUSTOMERS_COLLECTION = 'customers';
 
-api.use('/api-docs', express.static(path.join(__dirname, '../commons/swagger-ui')))
+api.use('/api-docs', express.static(path.join(__dirname, '../commons/swagger-ui')));
 api.use(bodyParser.json());
 api.use(cors());
 api.use(function(request, response, next) {
@@ -386,23 +386,23 @@ var server = api.listen(8080, function() {
 });
 
 var swaggerDefinition = {
-  info: {
-    title: 'Customer Service API',
-    version: '1.0.0',
-    description: 'RESTful API with Swagger'
-  },
-  host: server.address().address + ':' + server.address().port,
-  basePath: '/'
+    info: {
+        title: 'Customer Service API',
+        version: '1.0.0',
+        description: 'RESTful API with Swagger'
+    },
+    host: server.address().address + ':' + server.address().port,
+    basePath: '/'
 };
 
 var options = {
-  swaggerDefinition: swaggerDefinition,
-  apis: [path.join(__dirname, './*.js')]
+    swaggerDefinition: swaggerDefinition,
+    apis: [path.join(__dirname, './*.js')]
 };
 
 var swaggerSpec = swaggerJsdoc(options);
 
 api.get('/swagger.json', function(request, response) {
-  response.set('Content-Type', 'application/json');
-  response.send(swaggerSpec);
+    response.set('Content-Type', 'application/json');
+    response.send(swaggerSpec);
 });

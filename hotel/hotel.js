@@ -11,7 +11,7 @@ var api = express();
 var HOTEL_PREFIX = '[HOTEL_SERVICE]';
 var HOTELS_COLLECTION = 'hotels';
 
-api.use('/api-docs', express.static(path.join(__dirname, '../commons/swagger-ui')))
+api.use('/api-docs', express.static(path.join(__dirname, '../commons/swagger-ui')));
 api.use(bodyParser.json());
 api.use(cors());
 api.use(function(request, response, next) {
@@ -206,23 +206,23 @@ var server = api.listen(8081, function() {
 });
 
 var swaggerDefinition = {
-  info: {
-    title: 'Hotel Service API',
-    version: '1.0.0',
-    description: 'RESTful API with Swagger'
-  },
-  host: server.address().address + ':' + server.address().port,
-  basePath: '/'
+    info: {
+        title: 'Hotel Service API',
+        version: '1.0.0',
+        description: 'RESTful API with Swagger'
+    },
+    host: server.address().address + ':' + server.address().port,
+    basePath: '/'
 };
 
 var options = {
-  swaggerDefinition: swaggerDefinition,
-  apis: [path.join(__dirname, './*.js')]
+    swaggerDefinition: swaggerDefinition,
+    apis: [path.join(__dirname, './*.js')]
 };
 
 var swaggerSpec = swaggerJsdoc(options);
 
 api.get('/swagger.json', function(request, response) {
-  response.set('Content-Type', 'application/json');
-  response.send(swaggerSpec);
+    response.set('Content-Type', 'application/json');
+    response.send(swaggerSpec);
 });
