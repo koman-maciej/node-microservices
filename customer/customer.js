@@ -265,7 +265,7 @@ api.post('/customers', function(request, response) {
 /**
  * @swagger
  * /customers/{customerId}/hotels/{hotelId}:
- *   put:
+ *   patch:
  *     tags:
  *       - Customer management
  *     description: Assigns a given hotel the the given customer
@@ -288,7 +288,7 @@ api.post('/customers', function(request, response) {
  *       404:
  *         description: The customer or hotel was not found
  */
-api.put('/customers/:customerId/hotels/:hotelId', function(request, response) {
+api.patch('/customers/:customerId/hotels/:hotelId', function(request, response) {
     var customerId = request.params.customerId;
     var hotelId = request.params.hotelId;
     console.log("%s Handling request: Assign customer with id [%s] to the hotel [%s]", CUSTOMER_PREFIX, customerId, hotelId);
