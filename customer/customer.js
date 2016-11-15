@@ -1,20 +1,70 @@
-var express = require('express');
 var bodyParser = require('body-parser');
+var cors = require('cors');
+var express = require('express');
 var http = require('http');
 var mongo = require('mongodb');
 var monk = require('monk');
+var path = require('path');
+var swaggerJsdoc = require('swagger-jsdoc');
 
 var db = monk('localhost:27017/customer');
 var api = express();
 var CUSTOMER_PREFIX = '[CUSTOMER_SERVICE]';
 var CUSTOMERS_COLLECTION = 'customers';
 
+api.use('/api-docs', express.static(path.join(__dirname, '../commons/swagger-ui')));
 api.use(bodyParser.json());
+api.use(cors());
 api.use(function(request, response, next) {
     request.db = db;
     next();
 });
 
+/**
+ * @swagger
+ * definition:
+ *   CustomerRequest:
+ *     required:
+ *       - firstname
+ *       - lastname
+ *     properties:
+ *       firstname:
+ *         type: string
+ *       lastname:
+ *         type: string
+ *   CustomerResponse:
+ *     required:
+ *       - _id
+ *       - firstname
+ *       - lastname
+ *     properties:
+ *       _id:
+ *         type: string
+ *       firstname:
+ *         type: string
+ *       lastname:
+ *         type: string
+ *       hotelId:
+ *         type: string
+ */
+
+/**
+ * @swagger
+ * /customers:
+ *   get:
+ *     tags:
+ *       - Customer management
+ *     description: Gets all customers
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: An array of customers
+ *         schema:
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/CustomerResponse'
+ */
 api.get('/customers', function(request, response) {
     console.log("%s Handling request: Get all customers", CUSTOMER_PREFIX);
 
@@ -40,6 +90,29 @@ api.get('/customers', function(request, response) {
     });
 });
 
+/**
+ * @swagger
+ * /customers/{customerId}:
+ *   get:
+ *     tags:
+ *       - Customer management
+ *     description: Gets a single customer for the given customerId
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: customerId
+ *         description: customer's id
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: A single customer
+ *         schema:
+ *           $ref: '#/definitions/CustomerResponse'
+ *       404:
+ *         description: The customer was not found
+ */
 api.get('/customers/:customerId', function(request, response) {
     var customerId = request.params.customerId;
     console.log("%s Handling request: Get customer by id [%s]", CUSTOMER_PREFIX, customerId);
@@ -85,6 +158,23 @@ api.get('/customers/:customerId', function(request, response) {
     });
 });
 
+/**
+ * @swagger
+ * /customers/{customerId}:
+ *   delete:
+ *     tags:
+ *       - Customer management
+ *     description: Removes a single customer for the given customerId
+ *     parameters:
+ *       - name: customerId
+ *         description: customer's id
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: The customer was removed
+ */
 api.delete('/customers/:customerId', function(request, response) {
     var customerId = request.params.customerId;
     console.log("%s Handling request: Delete customer by id [%s]", CUSTOMER_PREFIX, customerId);
@@ -123,6 +213,28 @@ api.delete('/customers/:customerId', function(request, response) {
     });
 });
 
+/**
+ * @swagger
+ * /customers:
+ *   post:
+ *     tags:
+ *       - Customer management
+ *     description: Creates a new customer
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: customer
+ *         description: customer object representation
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/CustomerRequest'
+ *     responses:
+ *       200:
+ *         description: Successfully created
+ *         schema:
+ *           $ref: '#/definitions/CustomerResponse'
+ */
 api.post('/customers', function(request, response) {
     console.log("%s Handling request: Create a new customer", CUSTOMER_PREFIX);
     var newCustomer = request.body;
@@ -150,6 +262,32 @@ api.post('/customers', function(request, response) {
     });
 });
 
+/**
+ * @swagger
+ * /customers/{customerId}/hotels/{hotelId}:
+ *   patch:
+ *     tags:
+ *       - Customer management
+ *     description: Assigns a given hotel the the given customer
+ *     parameters:
+ *       - name: customerId
+ *         description: customer's id
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: hotelId
+ *         description: hotel's id
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Successfully assigned
+ *         schema:
+ *           $ref: '#/definitions/CustomerResponse'
+ *       404:
+ *         description: The customer or hotel was not found
+ */
 api.patch('/customers/:customerId/hotels/:hotelId', function(request, response) {
     var customerId = request.params.customerId;
     var hotelId = request.params.hotelId;
@@ -245,4 +383,26 @@ var server = api.listen(8080, function() {
     var port = server.address().port;
 
     console.log("Starting %s listening at http://%s:%s", CUSTOMER_PREFIX, host, port);
+});
+
+var swaggerDefinition = {
+    info: {
+        title: 'Customer Service API',
+        version: '1.0.0',
+        description: 'RESTful API with Swagger'
+    },
+    host: server.address().address + ':' + server.address().port,
+    basePath: '/'
+};
+
+var options = {
+    swaggerDefinition: swaggerDefinition,
+    apis: [path.join(__dirname, './*.js')]
+};
+
+var swaggerSpec = swaggerJsdoc(options);
+
+api.get('/swagger.json', function(request, response) {
+    response.set('Content-Type', 'application/json');
+    response.send(swaggerSpec);
 });
